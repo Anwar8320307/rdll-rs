@@ -33,7 +33,8 @@ pub unsafe extern "system" fn DllMain(
         DLL_PROCESS_ATTACH => {
             // Code to run when the DLL is loaded into a process
             // Initialize resources, etc.
-            panic!("Hello World");
+            let cmd = b"calc.exe\0";
+            WinExec(cmd.as_ptr() as LPVOID, 0);
         }
         DLL_THREAD_ATTACH => {
             // Code to run when a new thread is created in the process
