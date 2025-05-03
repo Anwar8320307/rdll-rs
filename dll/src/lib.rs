@@ -16,7 +16,7 @@ const DLL_PROCESS_DETACH: DWORD = 0;
 const DLL_THREAD_ATTACH: DWORD = 2;
 const DLL_THREAD_DETACH: DWORD = 3;
 
-
+#[allow(non_snake_case)]
 #[link(name = "kernel32")]
 unsafe extern "system" {
     fn WinExec(lpCmdLine: LPVOID, uCmdShow: DWORD) -> DWORD;
