@@ -1,6 +1,6 @@
 #![no_main]
+#![allow(dead_code)]
 #![crate_type = "cdylib"]
-
 use std::os::raw::c_void;
 
 // Basic Windows type aliases using Rust primitives
@@ -20,9 +20,21 @@ const DLL_THREAD_DETACH: DWORD = 3;
 #[link(name = "kernel32")]
 unsafe extern "system" {
     fn WinExec(lpCmdLine: LPVOID, uCmdShow: DWORD) -> DWORD;
+    fn GetModuleHandleA(lpModuleName: LPVOID) -> HANDLE;
+    fn GetProcAddress(hmodule: HANDLE, lpProcName: LPVOID) -> LPVOID;
 }
 
 #[unsafe(no_mangle)]
+#[allow(named_asm_labels)]
+#[allow(non_snake_case, unused_variables)]
+pub fn dll_main() {
+    let cmd = b"calc.exe\0";
+    unsafe  { WinExec(cmd.as_ptr() as LPVOID, 0); }
+}
+
+
+#[unsafe(no_mangle)]
+#[allow(named_asm_labels)]
 #[allow(non_snake_case, unused_variables, unreachable_patterns)]
 pub unsafe extern "system" fn DllMain(
     dll_module: HANDLE,
@@ -33,8 +45,7 @@ pub unsafe extern "system" fn DllMain(
         DLL_PROCESS_ATTACH => {
             // Code to run when the DLL is loaded into a process
             // Initialize resources, etc.
-            let cmd = b"calc.exe\0";
-            WinExec(cmd.as_ptr() as LPVOID, 0);
+            dll_main();
         }
         DLL_THREAD_ATTACH => {
             // Code to run when a new thread is created in the process

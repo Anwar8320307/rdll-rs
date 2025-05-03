@@ -1,9 +1,10 @@
-[package]
-name = "dll-rs"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+members = ["dll", "exe"]
+resolver = "3"
 
-[lib]
-crate-type = ["cdylib"]
-
-[dependencies]
+[profile.release]
+strip = "symbols"
+panic = "abort"
+opt-level = "z"
+codegen-units = 1
+lto = true
