@@ -34,11 +34,11 @@ cargo build --release
 
 The project can be used in two ways:
 
-1. As a DLL:
+1. As a DLL (**dll-rs.dll**):
     - Build in release mode to generate the DLL
     - The DLL exports a `DllMain` function and example functionality
 
-2. As an executable:
+2. As an executable (**debug-executable.exe**):
     - Run in debug mode to test DLL functionality without DLL debugging gymnastics
     - Running in release mode will display a warning message
 
