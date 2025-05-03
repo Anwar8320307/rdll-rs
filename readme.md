@@ -54,3 +54,7 @@ The project can be used in two ways:
 - Rust 2024 edition
 - Windows operating system
 - Cargo build system
+
+## Licensing
+
+- MIT or Apache 2.0
