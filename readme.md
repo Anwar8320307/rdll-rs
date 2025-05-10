@@ -64,7 +64,7 @@ The project can be used in thee ways:
 - Includes DLL entry point handling
 - Remember: maximum compatability with this template, all functionality should be called from `dll_main` in `dll/src/lib.rs`
 - Exports `ReflectiveLoader` and handles calling the real reflective loader to support legacy loader checks
-- Supports the command line ergonomics of both`shinject` and `dllinject` commands of your [favorite C2 Framework](https://www.cobaltstrike.com/).
+- Supports the command-line ergonomics of both the `shinject` and `dllinject` commands of your [favorite C2 Framework](https://www.cobaltstrike.com/).
 
 ## Requirements
 
