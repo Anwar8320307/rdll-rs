@@ -24,12 +24,118 @@ unsafe extern "system" {
     fn GetProcAddress(hmodule: HANDLE, lpProcName: LPVOID) -> LPVOID;
 }
 
+#[allow(non_snake_case)]
+#[link(name = "user32")]
+unsafe extern "system" {
+    fn MessageBoxA(
+        hWnd: HANDLE,
+        lpText: LPVOID,
+        lpCaption: LPVOID,
+        uType: DWORD
+    );
+}
+
+
+#[repr(C)]
+struct ImageDosHeader {
+    e_magic: u16,
+    e_cblp: u16,
+    e_cp: u16,
+    e_crlc: u16,
+    e_cparhdr: u16,
+    e_minalloc: u16,
+    e_maxalloc: u16,
+    e_ss: u16,
+    e_sp: u16,
+    e_csum: u16,
+    e_ip: u16,
+    e_cs: u16,
+    e_lfarlc: u16,
+    e_ovno: u16,
+    e_res: [u16; 4],
+    e_oemid: u16,
+    e_oeminfo: u16,
+    e_res2: [u16; 10],
+    e_lfanew: i32,
+}
+
+#[repr(C)]
+struct ImageNtHeaders {
+    signature: u32,
+}
+
+const IMAGE_DOS_SIGNATURE: u16 = 0x5A4D;     // 'MZ'
+const IMAGE_NT_SIGNATURE: u32 = 0x00004550;  // 'PE\0\0'
+
+#[cfg(target_arch = "x86_64")]
+unsafe fn get_ip() -> usize {
+    let rip: usize;
+    unsafe { std::arch::asm!("lea {}, [rip]", out(reg) rip) };
+    rip
+}
+
+#[cfg(target_arch = "x86")]
+unsafe fn get_ip() -> usize {
+    let eip: usize;
+    unsafe{
+        std::arch::asm!(
+        "call 1f",
+        "1: pop {}",
+        out(reg) eip,
+        );
+    }
+
+    eip
+}
+
+pub fn find_mz_pe_signature() -> Option<*const u8> {
+    unsafe {
+        let rip = get_ip();
+        let mut ptr = rip as *const u8;
+
+        loop {
+            if ptr < 2 as *const u8 {
+                break;
+            }
+
+            let dos_header = ptr.offset(-2) as *const ImageDosHeader;
+
+            if std::ptr::read_unaligned(&(*dos_header).e_magic) == IMAGE_DOS_SIGNATURE {
+                let e_lfanew = std::ptr::read_unaligned(&(*dos_header).e_lfanew) as isize;
+
+                if e_lfanew >= std::mem::size_of::<ImageDosHeader>() as isize && e_lfanew < 1024 {
+                    let nt_header_ptr = (dos_header as *const u8).offset(e_lfanew) as *const ImageNtHeaders;
+
+                    if std::ptr::read_unaligned(&(*nt_header_ptr).signature) == IMAGE_NT_SIGNATURE {
+                        return Some(dos_header as *const u8);
+                    }
+                }
+            }
+
+            ptr = ptr.offset(-1);
+        }
+
+        None
+    }
+}
+
+/// ReflectiveLoader for compatability with legacy Reflective DLL loaders
+#[unsafe(no_mangle)]
+pub unsafe extern "system" fn ReflectiveLoader(){
+    let module_base = find_mz_pe_signature();
+    if module_base.is_some() {
+        let module_base = module_base.unwrap();
+        unsafe { std::arch::asm!("call {0}", in(reg) module_base) };
+    }
+}
+
+/// For maximum compatability with this template, all functionality should be called from `dll_main`
 #[unsafe(no_mangle)]
 #[allow(named_asm_labels)]
 #[allow(non_snake_case, unused_variables)]
 pub fn dll_main() {
-    let cmd = b"calc.exe\0";
-    unsafe  { WinExec(cmd.as_ptr() as LPVOID, 0); }
+    let msg = b"Hello from Rust Reflective DLL!\0";
+    unsafe { MessageBoxA(std::ptr::null_mut(), msg.as_ptr() as LPVOID, msg.as_ptr() as LPVOID, 0 ); }
 }
 
 

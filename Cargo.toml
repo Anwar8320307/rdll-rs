@@ -1,5 +1,5 @@
 [workspace]
-members = ["dll", "exe"]
+members = ["dll", "exe", "xtask"]
 resolver = "3"
 
 [profile.release]
