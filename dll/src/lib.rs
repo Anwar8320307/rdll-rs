@@ -121,6 +121,7 @@ pub fn find_mz_pe_signature() -> Option<*const u8> {
 
 /// ReflectiveLoader for compatability with legacy Reflective DLL loaders
 #[unsafe(no_mangle)]
+#[allow(non_snake_case)]
 pub unsafe extern "system" fn ReflectiveLoader(){
     let module_base = find_mz_pe_signature();
     if module_base.is_some() {
