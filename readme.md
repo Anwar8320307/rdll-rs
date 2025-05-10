@@ -37,10 +37,15 @@ The project can be used in two ways:
 1. As a DLL (**dll-rs.dll**):
     - Build in release mode to generate the DLL
     - The DLL exports a `DllMain` function and example functionality
-
 2. As an executable (**debug-executable.exe**):
     - Run in debug mode to test DLL functionality without DLL debugging gymnastics
     - Running in release mode will display a warning message
+3. As a Reflective DLL using [@hasherezade's](https://github.com/hasherezade) [pe_to_shellcode](https://github.com/hasherezade/pe_to_shellcode)
+    - Resolve submodules with `git submodule update --init --recursive`
+    - `cd .\build-deps\pe_to_shellcode\`
+    - `cmake .`
+    - `cmake --build . --config Release`
+   
 
 ## Technical Details
 
