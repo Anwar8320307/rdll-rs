@@ -9,7 +9,6 @@ type BOOL = i32; // Windows BOOL is typically defined as int
 type HANDLE = *mut std::ffi::c_void; // Treat handles as opaque pointers
 type LPVOID = *mut std::ffi::c_void;
 
-
 // Constants for DllMain call_reason
 const DLL_PROCESS_ATTACH: DWORD = 1;
 const DLL_PROCESS_DETACH: DWORD = 0;
@@ -27,14 +26,8 @@ unsafe extern "system" {
 #[allow(non_snake_case)]
 #[link(name = "user32")]
 unsafe extern "system" {
-    fn MessageBoxA(
-        hWnd: HANDLE,
-        lpText: LPVOID,
-        lpCaption: LPVOID,
-        uType: DWORD
-    );
+    fn MessageBoxA(hWnd: HANDLE, lpText: LPVOID, lpCaption: LPVOID, uType: DWORD);
 }
-
 
 #[repr(C)]
 struct ImageDosHeader {
@@ -64,8 +57,8 @@ struct ImageNtHeaders {
     signature: u32,
 }
 
-const IMAGE_DOS_SIGNATURE: u16 = 0x5A4D;     // 'MZ'
-const IMAGE_NT_SIGNATURE: u32 = 0x00004550;  // 'PE\0\0'
+const IMAGE_DOS_SIGNATURE: u16 = 0x5A4D; // 'MZ'
+const IMAGE_NT_SIGNATURE: u32 = 0x00004550; // 'PE\0\0'
 
 #[cfg(target_arch = "x86_64")]
 unsafe fn get_ip() -> usize {
@@ -77,7 +70,7 @@ unsafe fn get_ip() -> usize {
 #[cfg(target_arch = "x86")]
 unsafe fn get_ip() -> usize {
     let eip: usize;
-    unsafe{
+    unsafe {
         std::arch::asm!(
         "call 1f",
         "1: pop {}",
@@ -89,40 +82,41 @@ unsafe fn get_ip() -> usize {
 }
 
 pub fn find_mz_pe_signature() -> Option<*const u8> {
-    unsafe {
-        let rip = get_ip();
-        let mut ptr = rip as *const u8;
+    let rip = unsafe { get_ip() };
+    let mut ptr = rip as *const u8;
 
-        loop {
-            if ptr < 2 as *const u8 {
-                break;
-            }
-
-            let dos_header = ptr.offset(-2) as *const ImageDosHeader;
-
-            if std::ptr::read_unaligned(&(*dos_header).e_magic) == IMAGE_DOS_SIGNATURE {
-                let e_lfanew = std::ptr::read_unaligned(&(*dos_header).e_lfanew) as isize;
-
-                if e_lfanew >= std::mem::size_of::<ImageDosHeader>() as isize && e_lfanew < 1024 {
-                    let nt_header_ptr = (dos_header as *const u8).offset(e_lfanew) as *const ImageNtHeaders;
-
-                    if std::ptr::read_unaligned(&(*nt_header_ptr).signature) == IMAGE_NT_SIGNATURE {
-                        return Some(dos_header as *const u8);
-                    }
-                }
-            }
-
-            ptr = ptr.offset(-1);
+    loop {
+        if ptr < 2 as *const u8 {
+            break;
         }
 
-        None
+        let dos_header = unsafe { ptr.offset(-2) } as *const ImageDosHeader;
+
+        if unsafe { std::ptr::read_unaligned(&(*dos_header).e_magic) } == IMAGE_DOS_SIGNATURE {
+            let e_lfanew = unsafe { std::ptr::read_unaligned(&(*dos_header).e_lfanew) } as isize;
+
+            if e_lfanew >= std::mem::size_of::<ImageDosHeader>() as isize && e_lfanew < 1024 {
+                let nt_header_ptr =
+                    unsafe { (dos_header as *const u8).offset(e_lfanew) } as *const ImageNtHeaders;
+
+                if unsafe { std::ptr::read_unaligned(&(*nt_header_ptr).signature) }
+                    == IMAGE_NT_SIGNATURE
+                {
+                    return Some(dos_header as *const u8);
+                }
+            }
+        }
+
+        ptr = unsafe { ptr.offset(-1) };
     }
+
+    None
 }
 
 /// ReflectiveLoader for compatability with legacy Reflective DLL loaders
 #[unsafe(no_mangle)]
 #[allow(non_snake_case)]
-pub unsafe extern "system" fn ReflectiveLoader(){
+pub unsafe extern "system" fn ReflectiveLoader() {
     let module_base = find_mz_pe_signature();
     if module_base.is_some() {
         let module_base = module_base.unwrap();
@@ -136,9 +130,15 @@ pub unsafe extern "system" fn ReflectiveLoader(){
 #[allow(non_snake_case, unused_variables)]
 pub fn dll_main() {
     let msg = b"Hello from Rust Reflective DLL!\0";
-    unsafe { MessageBoxA(std::ptr::null_mut(), msg.as_ptr() as LPVOID, msg.as_ptr() as LPVOID, 0 ); }
+    unsafe {
+        MessageBoxA(
+            std::ptr::null_mut(),
+            msg.as_ptr() as LPVOID,
+            msg.as_ptr() as LPVOID,
+            0,
+        );
+    }
 }
-
 
 #[unsafe(no_mangle)]
 #[allow(named_asm_labels)]
@@ -146,8 +146,8 @@ pub fn dll_main() {
 pub unsafe extern "system" fn DllMain(
     dll_module: HANDLE,
     call_reason: u32,
-    reserved: *mut c_void) -> BOOL
-{
+    reserved: *mut c_void,
+) -> BOOL {
     match call_reason {
         DLL_PROCESS_ATTACH => {
             // Code to run when the DLL is loaded into a process
