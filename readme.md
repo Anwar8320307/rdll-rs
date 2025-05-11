@@ -60,7 +60,7 @@ The project can be used in thee ways:
 This template includes a `write_output` function which allows for output via named pipes to the Beacon console (in a very hacky way).
 This works by loading the `rdll-rs.cna` which registers two commands: `rdll-exec` and `rdll-read`.
 - `rdll-exec` stomps the pipe name specified in the `.cna` into the `dll_rs.shc.dll`, then injects the DLL via the `bdllinject` aggressor function.
-- `rdll-read` wraps the `bpsinject` aggressor function to execute a Powershell one-liner to read from the same pipe and output those contents to the beacon console.
+- `rdll-read` uses `CommandBuilder` to build a custom tasks to read from the pipe and output the contents to the Beacon console.
 - **NOTE: `write_output` is **BLOCKING** so it should only be used to write output to the Beacon console all at once (ie once your intended functionality is entirely complete).**
 
 ![img.png](img.png)
