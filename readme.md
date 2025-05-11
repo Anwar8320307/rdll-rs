@@ -56,6 +56,13 @@ The project can be used in thee ways:
     - Use your Reflective DLL in `target/release/dll_rs.shc.dll`
     - **NOTE: If the build process above is too complicated/broken for your taste, simply placing the [`pe2shc.exe`](https://github.com/hasherezade/pe_to_shellcode/releases/download/v1.2/pe2shc.exe) executable in the proper folder structure (`build-deps/pe_to_shellcode/pe2shc/Release/pe2shc.exe`) will work**
 
+## Getting DLL Output to Beacon Console
+The dll template includes `write_output` which allows for output via named pipes to the Beacon console (in a very hacky way).
+This works by loading the `rdll-rs.cna` which registers two commands: `rdll-exec` and `rdll-read`.
+- `rdll-exec` stomps the pipe name specified in the `.cna` into the `dll_rs.shc.dll`, then injects the DLL via the `bdllinject` aggressor function.
+- `rdll-read` wraps the `bpsinject` aggressor function to execute a Powershell one-liner to read from the same pipe and output those contents to the beacon console.
+- **NOTE:** `write_output` is **BLOCKING** so it should only be used to write output to the Beacon console all at once (ie once your intended functionality is entirely complete).
+
 ## Technical Details
 
 - Uses `cdylib` and `rlib` crate types
