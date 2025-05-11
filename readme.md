@@ -63,7 +63,7 @@ This works by loading the `rdll-rs.cna` which registers two commands: `rdll-exec
 - `rdll-read` uses `CommandBuilder` to build a custom tasks to read from the pipe and output the contents to the Beacon console.
 - **NOTE: `write_output` is **BLOCKING** so it should only be used to write output to the Beacon console all at once (ie once your intended functionality is entirely complete).**
 
-![img.png](img.png)
+![img_1.png](img_1.png)
 
 ## Technical Details
 
