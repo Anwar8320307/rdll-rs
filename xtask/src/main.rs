@@ -2,7 +2,7 @@ use std::process::{Command, exit};
 
 fn main() {
     let path = std::env::current_dir().unwrap();
-    println!("The current directory is {}", path.display());
+    println!("[INFO] The current directory is {}", path.display());
 
     let status = Command::new("cargo")
         .args(&["build", "--release", "--manifest-path", "./Cargo.toml"])
