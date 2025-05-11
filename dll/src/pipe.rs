@@ -11,11 +11,6 @@ pub(crate) fn write_output(data: &str) {
     let message = data.as_bytes();
     let mut bytes_written: u32 = 0;
 
-    let msg = pipe_name.as_ptr() as *const u8;
-    unsafe {
-        MessageBoxA(null_mut(), msg as LPVOID, msg as LPVOID, 0);
-    }
-
     let h_pipe = unsafe {
         CreateNamedPipeA(
             pipe_name.as_ptr() as *const u8,
