@@ -65,6 +65,10 @@ This works by loading the `rdll-rs.cna` which registers two commands: `rdll-exec
 
 ![img_1.png](img_1.png)
 
+## I don't want to learn Rust
+I encourage you to try it sometime. However, to support the integration of C code a [Foreign Function Interface (FFI)](https://doc.rust-lang.org/nomicon/ffi.html) entry point (`dll/c_src/c_entry.c`) has been added to the template to allow you to call into C code from Rust.
+![img.png](img.png)
+
 ## Technical Details
 
 - Uses `cdylib` and `rlib` crate types
