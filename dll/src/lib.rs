@@ -5,9 +5,9 @@
 mod pipe;
 mod windows;
 
+use crate::pipe::write_output;
 use std::os::raw::c_void;
 use windows::*;
-use crate::pipe::write_output;
 
 // Constants for DllMain call_reason
 const DLL_PROCESS_ATTACH: DWORD = 1;
@@ -15,13 +15,11 @@ const DLL_PROCESS_DETACH: DWORD = 0;
 const DLL_THREAD_ATTACH: DWORD = 2;
 const DLL_THREAD_DETACH: DWORD = 3;
 
-
 #[allow(non_snake_case)]
 #[link(name = "user32")]
 unsafe extern "system" {
     fn MessageBoxA(hWnd: HANDLE, lpText: LPVOID, lpCaption: LPVOID, uType: DWORD);
 }
-
 
 /// For maximum compatability with this template, all functionality should be called from `dll_main`
 #[unsafe(no_mangle)]
@@ -40,7 +38,6 @@ pub fn dll_main() {
 
     write_output("Hello from the Rust Reflective DLL via output!");
 }
-
 
 #[cfg(target_arch = "x86_64")]
 unsafe fn get_ip() -> usize {

@@ -1,6 +1,6 @@
 #![allow(unused_imports)]
 use crate::windows::*;
-use std::ffi::{CString};
+use std::ffi::CString;
 use std::ptr::null_mut;
 
 pub static PIPE_NAME: &[u8; 42] = b"\\\\.\\pipe\\RDLL_PIPE_NAME_NO_CHANGE_PLS\0\0\0\0\0";
@@ -12,7 +12,9 @@ pub(crate) fn write_output(data: &str) {
     let mut bytes_written: u32 = 0;
 
     let msg = pipe_name.as_ptr() as *const u8;
-    unsafe { MessageBoxA(null_mut(), msg as LPVOID,  msg as LPVOID, 0); }
+    unsafe {
+        MessageBoxA(null_mut(), msg as LPVOID, msg as LPVOID, 0);
+    }
 
     let h_pipe = unsafe {
         CreateNamedPipeA(
