@@ -6,8 +6,8 @@ mod ffi;
 mod pipe;
 mod windows;
 
-use crate::ffi::c_entry;
-use crate::pipe::write_output;
+use crate::ffi::*;
+use crate::pipe::*;
 
 use std::os::raw::c_void;
 use windows::*;
