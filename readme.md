@@ -60,7 +60,7 @@ The project can be used in thee ways:
 This template includes a `write_output` function which allows for output via named pipes to the Beacon console (in a very hacky way).
 This works by loading the `rdll-rs.cna` which registers two commands: `rdll-exec` and `rdll-read`.
 - `rdll-exec` stomps the pipe name specified in the `.cna` into the `dll_rs.shc.dll`, then injects the DLL via the `bdllinject` aggressor function.
-- `rdll-read` uses `CommandBuilder` to build a custom tasks to read from the pipe and output the contents to the Beacon console.
+- `rdll-read` uses `CommandBuilder` to build a custom task to read from the pipe and output the contents to the Beacon console.
 - **NOTE: `write_output` is **BLOCKING** so it should only be used to write output to the Beacon console all at once (ie once your intended functionality is entirely complete).**
 
 ![img_1.png](img_1.png)
@@ -74,6 +74,11 @@ This works by loading the `rdll-rs.cna` which registers two commands: `rdll-exec
 - Remember: For maximum compatability with this template, all functionality should be called from `dll_main` in `dll/src/lib.rs`
 - Exports `ReflectiveLoader` and handles calling the real reflective loader to support legacy loader checks
 - Supports the command-line ergonomics of both the `shinject` and `dllinject` commands of your [favorite C2 Framework](https://www.cobaltstrike.com/).
+
+## Comments
+This template is significantly more useful than most existing Reflective DLL templates in C/C++ because it provides an organic platform from which third-party libraries can be readily used. This is thanks to Rust's [Cargo](https://github.com/rust-lang/cargo) which allows for easily sharable libraries. 
+For example, if you were looking for a method of stack spoofing from inside a Reflective DLL in C/C++ you would most likely be stuck implementing that yourself from your preferred template. However, using Cargo, you can quickly add a library like [uwd](https://crates.io/crates/uwd) to 
+get access to that capability without any of the overhead or additional Git submodule shenanigans that come with setting that up in a C/C++ repository. The entire [Crates](https://crates.io/) ecosystem is now at your fingertips.
 
 ## Requirements
 
