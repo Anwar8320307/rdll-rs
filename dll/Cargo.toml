@@ -8,3 +8,5 @@ name = "dll_rs"
 crate-type = ["cdylib", "rlib"]
 path = "src/lib.rs"
 
+[build-dependencies]
+cc = "1.0"

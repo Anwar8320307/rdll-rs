@@ -2,10 +2,13 @@
 #![allow(dead_code)]
 #![crate_type = "cdylib"]
 
+mod ffi;
 mod pipe;
 mod windows;
 
+use crate::ffi::c_entry;
 use crate::pipe::write_output;
+
 use std::os::raw::c_void;
 use windows::*;
 
@@ -14,12 +17,6 @@ const DLL_PROCESS_ATTACH: DWORD = 1;
 const DLL_PROCESS_DETACH: DWORD = 0;
 const DLL_THREAD_ATTACH: DWORD = 2;
 const DLL_THREAD_DETACH: DWORD = 3;
-
-#[allow(non_snake_case)]
-#[link(name = "user32")]
-unsafe extern "system" {
-    fn MessageBoxA(hWnd: HANDLE, lpText: LPVOID, lpCaption: LPVOID, uType: DWORD);
-}
 
 /// For maximum compatability with this template, all functionality should be called from `dll_main`
 #[unsafe(no_mangle)]
@@ -34,6 +31,10 @@ pub fn dll_main() {
             msg.as_ptr() as LPVOID,
             0,
         );
+    }
+
+    unsafe {
+        c_entry();
     }
 
     write_output("Hello from the Rust Reflective DLL via output!");

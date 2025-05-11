@@ -20,7 +20,12 @@ unsafe extern "system" {
 #[allow(non_snake_case)]
 #[link(name = "user32")]
 unsafe extern "system" {
-    pub(crate) fn MessageBoxA(hWnd: HANDLE, lpText: LPVOID, lpCaption: LPVOID, uType: DWORD);
+    pub fn MessageBoxA(hWnd: HANDLE, lpText: LPVOID, lpCaption: LPVOID, uType: DWORD);
+}
+
+#[allow(non_snake_case)]
+#[link(name = "user32")]
+unsafe extern "system" {
     pub(crate) fn GetLastError() -> u32;
     pub(crate) fn CreateNamedPipeA(
         lpName: *const u8,                              // LPCSTR
